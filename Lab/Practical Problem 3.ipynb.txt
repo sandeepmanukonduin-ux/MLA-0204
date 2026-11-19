@@ -1,0 +1,168 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyNsn+R79WiyHYc+AICi9TUn",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/VAdarshReddy28/MLA0204-FOML/blob/main/Practical%20Problem%203.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 5,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "U9TZQ69ulBKw",
+        "outputId": "64c86c27-4fa8-42ff-9279-0be15ffaaced"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Total rows loaded: 14\n",
+            "Initial dataset entropy: 0.9403\n",
+            "\n",
+            "=== DECISION TREE STRUCTURE FROM YOUR CODE ===\n",
+            "[Split on attribute: Outlook]\n",
+            "  Value: sunny ->\n",
+            "    [Split on attribute: Humidity]\n",
+            "      Value: high ->\n",
+            "        Predict: no\n",
+            "      Value: normal ->\n",
+            "        Predict: yes\n",
+            "  Value: overcast ->\n",
+            "    Predict: yes\n",
+            "  Value: rain ->\n",
+            "    [Split on attribute: Wind]\n",
+            "      Value: weak ->\n",
+            "        Predict: yes\n",
+            "      Value: strong ->\n",
+            "        Predict: no\n"
+          ]
+        }
+      ],
+      "source": [
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "import math\n",
+        "import os\n",
+        "\n",
+        "# Define a class for the decision tree node\n",
+        "class DecisionTreeNode:\n",
+        "    def __init__(self, attribute=None, label=None, branches=None):\n",
+        "        self.attribute = attribute  # the attribute used to split the data\n",
+        "        self.label = label  # the label assigned to this node\n",
+        "        self.branches = branches if branches is not None else {}  # the branches of the decision tree\n",
+        "\n",
+        "# Define a function to calculate the entropy of a dataset\n",
+        "def entropy(data):\n",
+        "    target = data['target']\n",
+        "    n = len(target)\n",
+        "    unique, counts = np.unique(target, return_counts=True)\n",
+        "    entropy_val = 0\n",
+        "    for i in range(len(unique)):\n",
+        "        p = counts[i] / n\n",
+        "        entropy_val -= p * math.log2(p)\n",
+        "    return entropy_val\n",
+        "\n",
+        "# Define a function to calculate the information gain of an attribute\n",
+        "def information_gain(data, attribute):\n",
+        "    n = len(data)\n",
+        "    values = data[attribute].unique()\n",
+        "    entropy_s = entropy(data)\n",
+        "    entropy_attr = 0\n",
+        "    for value in values:\n",
+        "        subset = data[data[attribute] == value]\n",
+        "        subset_n = len(subset)\n",
+        "        subset_entropy = entropy(subset)\n",
+        "        entropy_attr += subset_n / n * subset_entropy\n",
+        "    return entropy_s - entropy_attr\n",
+        "\n",
+        "# Define the ID3 algorithm\n",
+        "def id3(data, attributes):\n",
+        "    target = data['target']\n",
+        "    # If all the examples have the same target value, return a leaf node with that value\n",
+        "    if len(target.unique()) == 1:\n",
+        "        return DecisionTreeNode(label=target.iloc[0])\n",
+        "    # If there are no attributes left to split on, return a leaf node with the most common target value\n",
+        "    if len(attributes) == 0:\n",
+        "        return DecisionTreeNode(label=target.value_counts().idxmax())\n",
+        "    # Otherwise, select the attribute with the highest information gain\n",
+        "    gains = {attr: information_gain(data, attr) for attr in attributes}\n",
+        "    best_attribute = max(gains, key=gains.get)\n",
+        "    # Create a new decision tree node with the selected attribute\n",
+        "    node = DecisionTreeNode(attribute=best_attribute)\n",
+        "    # Split the data based on the selected attribute and recursively build the tree\n",
+        "    for value in data[best_attribute].unique():\n",
+        "        subset = data[data[best_attribute] == value].drop(best_attribute, axis=1)\n",
+        "        if len(subset) == 0:\n",
+        "            node.branches[value] = DecisionTreeNode(label=target.value_counts().idxmax())\n",
+        "        else:\n",
+        "            new_attributes = attributes.copy()\n",
+        "            if best_attribute in new_attributes:\n",
+        "                new_attributes.remove(best_attribute)\n",
+        "            node.branches[value] = id3(subset, new_attributes)\n",
+        "    return node\n",
+        "\n",
+        "# Helper function to print the custom tree structure beautifully\n",
+        "def print_tree(node, depth=0):\n",
+        "    indent = \"  \" * depth\n",
+        "    if node.label is not None:\n",
+        "        print(f\"{indent}Predict: {node.label}\")\n",
+        "    else:\n",
+        "        print(f\"{indent}[Split on attribute: {node.attribute}]\")\n",
+        "        for value, branch in node.branches.items():\n",
+        "            print(f\"{indent}  Value: {value} ->\")\n",
+        "            print_tree(branch, depth + 2)\n",
+        "\n",
+        "# Load the dataset\n",
+        "file_path = '/content/play_tennis (1).csv'\n",
+        "if not os.path.exists(file_path):\n",
+        "    file_path = 'play_tennis.csv'\n",
+        "\n",
+        "data = pd.read_csv(file_path)\n",
+        "\n",
+        "# Ensure proper column mapping for target variable\n",
+        "if 'Target' in data.columns:\n",
+        "    data = data.rename(columns={'Target': 'target'})\n",
+        "elif 'play' in data.columns:\n",
+        "    data = data.rename(columns={'play': 'target'})\n",
+        "\n",
+        "# Exclude index-like columns if present\n",
+        "attributes = [col for col in data.columns if col not in ['target', 'day', 'Day', 'id', 'ID']]\n",
+        "\n",
+        "# Print initial info\n",
+        "print(f\"Total rows loaded: {len(data)}\")\n",
+        "print(f\"Initial dataset entropy: {entropy(data):.4f}\\n\")\n",
+        "\n",
+        "# Build the decision tree using ID3 algorithm\n",
+        "root = id3(data, attributes)\n",
+        "\n",
+        "print(\"=== DECISION TREE STRUCTURE FROM YOUR CODE ===\")\n",
+        "print_tree(root)"
+      ]
+    }
+  ]
+}

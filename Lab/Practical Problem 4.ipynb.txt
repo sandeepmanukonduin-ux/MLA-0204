@@ -1,0 +1,159 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPHFseori+CKEUi5IZ2+KjU",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/VAdarshReddy28/MLA0204-FOML/blob/main/Practical%20Problem%204.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Practical Problem 4\n",
+        "# Build an Artificial Neural Network by implementing the Backpropagation algorithm\n",
+        "# and test the same using appropriate data sets.\n",
+        "\n",
+        "import numpy as np\n",
+        "from sklearn.datasets import load_breast_cancer\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.metrics import accuracy_score, confusion_matrix\n",
+        "\n",
+        "# Load dataset\n",
+        "data = load_breast_cancer()\n",
+        "X = data.data\n",
+        "y = data.target.reshape(-1, 1)\n",
+        "\n",
+        "# Split dataset\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "# Normalize data\n",
+        "scaler = StandardScaler()\n",
+        "X_train = scaler.fit_transform(X_train)\n",
+        "X_test = scaler.transform(X_test)\n",
+        "\n",
+        "# Activation function\n",
+        "def sigmoid(x):\n",
+        "    return 1 / (1 + np.exp(-np.clip(x, -500, 500)))\n",
+        "\n",
+        "# Derivative of sigmoid\n",
+        "def sigmoid_derivative(x):\n",
+        "    return x * (1 - x)\n",
+        "\n",
+        "# Initialize weights\n",
+        "np.random.seed(42)\n",
+        "\n",
+        "input_neurons = X_train.shape[1]\n",
+        "hidden_neurons = 10\n",
+        "output_neurons = 1\n",
+        "\n",
+        "W1 = np.random.randn(input_neurons, hidden_neurons) * 0.01\n",
+        "b1 = np.zeros((1, hidden_neurons))\n",
+        "\n",
+        "W2 = np.random.randn(hidden_neurons, output_neurons) * 0.01\n",
+        "b2 = np.zeros((1, output_neurons))\n",
+        "\n",
+        "learning_rate = 0.1\n",
+        "epochs = 1000\n",
+        "\n",
+        "# Backpropagation training\n",
+        "for epoch in range(epochs):\n",
+        "\n",
+        "    # Forward propagation\n",
+        "    hidden_input = np.dot(X_train, W1) + b1\n",
+        "    hidden_output = sigmoid(hidden_input)\n",
+        "\n",
+        "    final_input = np.dot(hidden_output, W2) + b2\n",
+        "    output = sigmoid(final_input)\n",
+        "\n",
+        "    # Calculate error\n",
+        "    error = y_train - output\n",
+        "\n",
+        "    # Backpropagation\n",
+        "    output_delta = error * sigmoid_derivative(output)\n",
+        "\n",
+        "    hidden_error = output_delta.dot(W2.T)\n",
+        "    hidden_delta = hidden_error * sigmoid_derivative(hidden_output)\n",
+        "\n",
+        "    # Update weights and biases\n",
+        "    W2 += hidden_output.T.dot(output_delta) * learning_rate\n",
+        "    b2 += np.sum(output_delta, axis=0, keepdims=True) * learning_rate\n",
+        "\n",
+        "    W1 += X_train.T.dot(hidden_delta) * learning_rate\n",
+        "    b1 += np.sum(hidden_delta, axis=0, keepdims=True) * learning_rate\n",
+        "\n",
+        "# Testing\n",
+        "hidden_test = sigmoid(np.dot(X_test, W1) + b1)\n",
+        "output_test = sigmoid(np.dot(hidden_test, W2) + b2)\n",
+        "\n",
+        "# Convert probabilities to class labels\n",
+        "y_pred = (output_test >= 0.5).astype(int)\n",
+        "\n",
+        "# Results\n",
+        "accuracy = accuracy_score(y_test, y_pred)\n",
+        "cm = confusion_matrix(y_test, y_pred)\n",
+        "\n",
+        "print(\"Artificial Neural Network using Backpropagation\")\n",
+        "print(\"-----------------------------------------------\")\n",
+        "print(\"Number of input neurons :\", input_neurons)\n",
+        "print(\"Number of hidden neurons:\", hidden_neurons)\n",
+        "print(\"Number of output neurons:\", output_neurons)\n",
+        "print(\"Number of epochs        :\", epochs)\n",
+        "print(\"Learning rate           :\", learning_rate)\n",
+        "print(\"Test Accuracy           :\", round(accuracy * 100, 2), \"%\")\n",
+        "print(\"\\nConfusion Matrix:\")\n",
+        "print(cm)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "i7Foizk4qEF7",
+        "outputId": "33fd56f6-49cd-4c78-e6c9-2a470dbe89e6"
+      },
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Artificial Neural Network using Backpropagation\n",
+            "-----------------------------------------------\n",
+            "Number of input neurons : 30\n",
+            "Number of hidden neurons: 10\n",
+            "Number of output neurons: 1\n",
+            "Number of epochs        : 1000\n",
+            "Learning rate           : 0.1\n",
+            "Test Accuracy           : 95.61 %\n",
+            "\n",
+            "Confusion Matrix:\n",
+            "[[41  2]\n",
+            " [ 3 68]]\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
