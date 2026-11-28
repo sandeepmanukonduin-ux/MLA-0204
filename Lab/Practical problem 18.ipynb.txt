@@ -1,0 +1,127 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyM8d5FHO/MAHggLiJ+ak5kW",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/VAdarshReddy28/MLA0204-FOML/blob/main/Practical%20problem%2018.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# SESSION 18: IRIS CLASSIFICATION USING PERCEPTRON\n",
+        "\n",
+        "from sklearn.datasets import load_iris\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.linear_model import Perceptron\n",
+        "from sklearn.pipeline import make_pipeline\n",
+        "from sklearn.metrics import accuracy_score, classification_report\n",
+        "\n",
+        "# Load Iris dataset\n",
+        "iris = load_iris()\n",
+        "\n",
+        "X = iris.data\n",
+        "y = iris.target\n",
+        "\n",
+        "# Split dataset\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42, stratify=y\n",
+        ")\n",
+        "\n",
+        "# Create model\n",
+        "model = make_pipeline(\n",
+        "    StandardScaler(),\n",
+        "    Perceptron(max_iter=1000, random_state=42)\n",
+        ")\n",
+        "\n",
+        "# Train model\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "# Test model\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"IRIS Classification using Perceptron\")\n",
+        "print(\"Accuracy:\", round(accuracy_score(y_test, y_pred) * 100, 2), \"%\")\n",
+        "\n",
+        "print(\"\\nClassification Report:\")\n",
+        "print(classification_report(\n",
+        "    y_test, y_pred, target_names=iris.target_names\n",
+        "))\n",
+        "\n",
+        "# Get user input\n",
+        "print(\"\\nEnter Flower Measurements:\")\n",
+        "\n",
+        "sl = float(input(\"Sepal Length: \"))\n",
+        "sw = float(input(\"Sepal Width: \"))\n",
+        "pl = float(input(\"Petal Length: \"))\n",
+        "pw = float(input(\"Petal Width: \"))\n",
+        "\n",
+        "# Predict flower\n",
+        "new_flower = [[sl, sw, pl, pw]]\n",
+        "\n",
+        "prediction = model.predict(new_flower)\n",
+        "\n",
+        "print(\"\\nPredicted Flower:\", iris.target_names[prediction[0]])0"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "2A378g2_VrAR",
+        "outputId": "b4cc6773-fe7c-40f3-8f80-f8c462d6240d"
+      },
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "IRIS Classification using Perceptron\n",
+            "Accuracy: 86.67 %\n",
+            "\n",
+            "Classification Report:\n",
+            "              precision    recall  f1-score   support\n",
+            "\n",
+            "      setosa       1.00      1.00      1.00        10\n",
+            "  versicolor       0.88      0.70      0.78        10\n",
+            "   virginica       0.75      0.90      0.82        10\n",
+            "\n",
+            "    accuracy                           0.87        30\n",
+            "   macro avg       0.88      0.87      0.87        30\n",
+            "weighted avg       0.88      0.87      0.87        30\n",
+            "\n",
+            "\n",
+            "Enter Flower Measurements:\n",
+            "Sepal Length: 5.1\n",
+            "Sepal Width: 3.5\n",
+            "Petal Length: 1.4\n",
+            "Petal Width: .2\n",
+            "\n",
+            "Predicted Flower: setosa\n"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyMRa18JTIZCUVhoZq9UUpsO",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/VAdarshReddy28/MLA0204-FOML/blob/main/Practical%20problem%2017.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "5eKr0oP7UzzC",
+        "outputId": "20ca0091-ce67-4854-b4a5-cc4c1d6c6995"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Mobile Price Prediction\n",
+            "Accuracy: 81.0 %\n",
+            "\n",
+            "Enter Mobile Specifications:\n",
+            "Battery Power: 3000\n",
+            "RAM: 6000\n",
+            "Internal Memory: 128\n",
+            "Mobile Weight: 180\n",
+            "Pixel Height: 1500\n",
+            "Pixel Width: 2000\n",
+            "Clock Speed: 2.5\n",
+            "Number of Cores: 8\n",
+            "\n",
+            "Predicted Price Range: 3\n",
+            "Mobile Category: Very High Cost\n"
+          ]
+        }
+      ],
+      "source": [
+        "# SESSION 17: MOBILE PRICE PREDICTION\n",
+        "\n",
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "from sklearn.ensemble import RandomForestClassifier\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.metrics import accuracy_score\n",
+        "\n",
+        "# Generate dataset\n",
+        "np.random.seed(42)\n",
+        "n = 1000\n",
+        "\n",
+        "df = pd.DataFrame({\n",
+        "    'battery_power': np.random.randint(500, 5000, n),\n",
+        "    'ram': np.random.randint(512, 8000, n),\n",
+        "    'internal_memory': np.random.randint(4, 256, n),\n",
+        "    'mobile_weight': np.random.randint(80, 250, n),\n",
+        "    'px_height': np.random.randint(200, 2000, n),\n",
+        "    'px_width': np.random.randint(300, 2500, n),\n",
+        "    'clock_speed': np.random.uniform(0.5, 3.0, n),\n",
+        "    'n_cores': np.random.randint(1, 9, n)\n",
+        "})\n",
+        "\n",
+        "# Create price range\n",
+        "score = (\n",
+        "    df['ram'] * 0.5 +\n",
+        "    df['battery_power'] * 0.15 +\n",
+        "    df['internal_memory'] * 5 +\n",
+        "    df['px_height'] * 0.5 +\n",
+        "    df['px_width'] * 0.5\n",
+        ")\n",
+        "\n",
+        "df['price_range'] = pd.qcut(\n",
+        "    score, 4, labels=[0, 1, 2, 3]\n",
+        ").astype(int)\n",
+        "\n",
+        "# Split data\n",
+        "X = df.drop('price_range', axis=1)\n",
+        "y = df['price_range']\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42, stratify=y\n",
+        ")\n",
+        "\n",
+        "# Train model\n",
+        "model = RandomForestClassifier(\n",
+        "    n_estimators=100, random_state=42\n",
+        ")\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "# Test model\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Mobile Price Prediction\")\n",
+        "print(\"Accuracy:\", round(accuracy_score(y_test, y_pred) * 100, 2), \"%\")\n",
+        "\n",
+        "# User input\n",
+        "print(\"\\nEnter Mobile Specifications:\")\n",
+        "\n",
+        "battery = int(input(\"Battery Power: \"))\n",
+        "ram = int(input(\"RAM: \"))\n",
+        "memory = int(input(\"Internal Memory: \"))\n",
+        "weight = int(input(\"Mobile Weight: \"))\n",
+        "height = int(input(\"Pixel Height: \"))\n",
+        "width = int(input(\"Pixel Width: \"))\n",
+        "speed = float(input(\"Clock Speed: \"))\n",
+        "cores = int(input(\"Number of Cores: \"))\n",
+        "\n",
+        "# Predict\n",
+        "new_mobile = pd.DataFrame([[\n",
+        "    battery, ram, memory, weight,\n",
+        "    height, width, speed, cores\n",
+        "]], columns=X.columns)\n",
+        "\n",
+        "result = model.predict(new_mobile)\n",
+        "\n",
+        "print(\"\\nPredicted Price Range:\", result[0])\n",
+        "\n",
+        "ranges = {\n",
+        "    0: \"Low Cost\",\n",
+        "    1: \"Medium Cost\",\n",
+        "    2: \"High Cost\",\n",
+        "    3: \"Very High Cost\"\n",
+        "}\n",
+        "\n",
+        "print(\"Mobile Category:\", ranges[result[0]])"
+      ]
+    }
+  ]
+}

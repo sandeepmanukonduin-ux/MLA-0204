@@ -1,0 +1,138 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOES+qqpHtg7p9kfIHBL6f+",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/VAdarshReddy28/MLA0204-FOML/blob/main/Practical%20problem%2019.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# SESSION 19: BANK LOAN PREDICTION USING NAIVE BAYES\n",
+        "\n",
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.naive_bayes import GaussianNB\n",
+        "from sklearn.metrics import accuracy_score, confusion_matrix\n",
+        "\n",
+        "# Generate sample dataset\n",
+        "np.random.seed(42)\n",
+        "n = 1000\n",
+        "\n",
+        "df = pd.DataFrame({\n",
+        "    'income': np.random.randint(15000, 150000, n),\n",
+        "    'credit_score': np.random.randint(300, 850, n),\n",
+        "    'loan_amount': np.random.randint(10000, 200000, n),\n",
+        "    'employment_years': np.random.randint(0, 30, n),\n",
+        "    'age': np.random.randint(21, 65, n)\n",
+        "})\n",
+        "\n",
+        "# Create loan status\n",
+        "df['loan_status'] = (\n",
+        "    (df['credit_score'] >= 600) &\n",
+        "    (df['income'] >= df['loan_amount'] * 0.5) &\n",
+        "    (df['employment_years'] >= 2)\n",
+        ").astype(int)\n",
+        "\n",
+        "# Split dataset\n",
+        "X = df.drop('loan_status', axis=1)\n",
+        "y = df['loan_status']\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42, stratify=y\n",
+        ")\n",
+        "\n",
+        "# Train Naive Bayes model\n",
+        "model = GaussianNB()\n",
+        "model.fit(X_train, y_train)\n",
+        "\n",
+        "# Test model\n",
+        "y_pred = model.predict(X_test)\n",
+        "\n",
+        "print(\"Bank Loan Prediction\")\n",
+        "print(\"Accuracy:\", round(accuracy_score(y_test, y_pred) * 100, 2), \"%\")\n",
+        "\n",
+        "print(\"\\nConfusion Matrix:\")\n",
+        "print(confusion_matrix(y_test, y_pred))\n",
+        "\n",
+        "# User input\n",
+        "print(\"\\nEnter Customer Details:\")\n",
+        "\n",
+        "income = float(input(\"Annual Income: \"))\n",
+        "credit = int(input(\"Credit Score: \"))\n",
+        "loan = float(input(\"Loan Amount: \"))\n",
+        "experience = int(input(\"Employment Years: \"))\n",
+        "age = int(input(\"Age: \"))\n",
+        "\n",
+        "# Predict loan status\n",
+        "new_customer = pd.DataFrame([[\n",
+        "    income, credit, loan, experience, age\n",
+        "]], columns=X.columns)\n",
+        "\n",
+        "result = model.predict(new_customer)\n",
+        "\n",
+        "print(\"\\nLoan Prediction:\")\n",
+        "\n",
+        "if result[0] == 1:\n",
+        "    print(\"Loan Status: APPROVED\")\n",
+        "else:\n",
+        "    print(\"Loan Status: REJECTED\")."
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "GmFrcHmMXhQL",
+        "outputId": "8e6ee2dd-66f5-4b16-cdb9-d21e5b0d08c6"
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Bank Loan Prediction\n",
+            "Accuracy: 84.5 %\n",
+            "\n",
+            "Confusion Matrix:\n",
+            "[[117  20]\n",
+            " [ 11  52]]\n",
+            "\n",
+            "Enter Customer Details:\n",
+            "Annual Income: 80000\n",
+            "Credit Score: 750\n",
+            "Loan Amount: 50000\n",
+            "Employment Years: 8\n",
+            "Age: 30\n",
+            "\n",
+            "Loan Prediction:\n",
+            "Loan Status: APPROVED\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
